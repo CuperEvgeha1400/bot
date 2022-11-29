@@ -1,16 +1,31 @@
-# This is a sample Python script.
+import logging
+from asyncio import get_event_loop
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+from aiogram import executor
+from asyncpgsa import pg
+
+from config import DataBaseConfig
+
+from misc import dp
+
+logging.basicConfig(level=logging.INFO)
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+async def init_connection():
+    db_config = DataBaseConfig()
+    await pg.init(
+        host=db_config.host,
+        port=db_config.port,
+        database=db_config.name,
+        user=db_config.user,
+        password=db_config.password.get_secret_value(),
+        min_size=5,
+        max_size=10
+    )
 
 
-# Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+    event_loop = get_event_loop()
+    event_loop.run_until_complete(init_connection())
+    executor.start_polling(dp, loop=event_loop, skip_updates=True)
